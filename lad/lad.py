@@ -13,9 +13,9 @@ from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 from sklearn.utils.multiclass import unique_labels
 from sklearn.metrics import classification_report
 
-from binarizer import CutpointBinarizer
-from featureselection import GreedySetCover
-from maxpatterns import MaxPatterns
+from binarizer.cutpointbinarizer import CutpointBinarizer
+from featureselection.featureselection import GreedySetCover
+from rulegenerator.maxpatterns import MaxPatterns
 
 # Docs
 __author__ = 'Vaux Gomes'
@@ -76,15 +76,15 @@ class LADClassifier(BaseEstimator):
         self.is_fitted_ = True
         # -------------------------------
 
-        print('# Binarization')
+        #print('# Binarization')
         cpb = CutpointBinarizer(self.tolerance)
         Xbin = cpb.fit_transform(X, y)
 
-        print('# Feature Selection')
+        #print('# Feature Selection')
         gsc = GreedySetCover()
         Xbin = gsc.fit_transform(Xbin, y)
 
-        print('# Rule building')
+        #print('# Rule building')
         mxp = MaxPatterns(self.purity)
         mxp.fit(Xbin, y)
         
@@ -93,7 +93,7 @@ class LADClassifier(BaseEstimator):
         self.__cutpoints = cpb.get_cutpoints()
         self.__rules = mxp.get_rules()
         
-        print('# Convert binary rules into numeric rules')
+        #print('# Convert binary rules into numeric rules')
         self.__rules_to_numerical()
 
         return self  # `fit` should always return `self`
@@ -110,13 +110,14 @@ class LADClassifier(BaseEstimator):
                 att, val = self.__cutpoints[att] # Convertion
                 r['conditions'].append((att, condition, val))
 
+'''
 if __name__ == '__main__':
     # Load
     df = pd.read_csv('data/iris.data', names='att0 att1 att2 att3 class'.split())
     df = df.sample(frac=1, random_state=0) # Shuffle
 
     # Sampling
-    sample_size = int(0.9*len(df))
+    sample_size = int(0.5*len(df))
 
     # Train
     X = df.iloc[:sample_size, :-1]
@@ -135,6 +136,4 @@ if __name__ == '__main__':
 
     # Report
     print(classification_report(y_test, y_hat, target_names=list(y.unique())))
-
-
-
+'''
