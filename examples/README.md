@@ -1,6 +1,8 @@
 # Description
 As the code was implemented following sklean's classifiers format, its usage is quitte straightforward
 
+# Example
+
 ```py
 # Load
 df = pd.read_csv('iris.data', names='att0 att1 att2 att3 class'.split())
