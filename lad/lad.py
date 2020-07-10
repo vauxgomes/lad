@@ -1,64 +1,128 @@
 #!/usr/bin/env python
 
-"""
-	Template
+'''
+Template
 	https://github.com/scikit-learn-contrib
-"""
+'''
 
-# Imports
-import numpy 	
+import numpy
 from sklearn.base import BaseEstimator
 from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 from sklearn.utils.multiclass import unique_labels
 
+from binarizer import CutpointBinarizer
+from featureselection import GreedySetCover
+from maxpatterns import MaxPatterns
+
 # Docs
 __author__ = 'Vaux Gomes'
-__version__ = '1.0.0'
+__version__ = '0.1.0'
 
 
 class LADClassifier(BaseEstimator):
-	"""  LAD Classifier """
 
-	def __init__(self, tolearance=0.0, purity=0.95):
-		"""
-			LAD Classifier Constructor
+    def __init__(self, tolerance=0.0, purity=0.95):
+        '''
+            LAD Classifier Constructor
 
-			Parameter:
-			tolerance -- Cutpoint tolerance. It must be bigger than or equal to zero
-			purity -- Minimum rule purity
-		"""
+            Implements the Maximized Prime Patterns heuristic described in the
+            "Maximum Patterns in Datasets" paper. It generates one pattern (rule)
+            per observation, while attempting to: (i) maximize the coverage of other
+            observations belonging to the same class, and (ii) preventing the
+            coverage of too many observations from outside that class. The amount of
+            "outside" coverage allowed is controlled by the minimum purity parameter
+            (from the main LAD classifier).
 
-		self.tolearance = tolearance
-		self.purity = purity
-		#self.pattern_length = pattern_length
-		#self.boost_rules = boost_rules
+            Parameter:
+            tolerance -- Cutpoint tolerance. It must be bigger than or equal to zero
+            purity -- Minimum rule purity
+        '''
 
-	def fit(self, X, y):
-		X, y = check_X_y(X, y, accept_sparse=True)
-		self.is_fitted_ = True
+        self.tolerance = tolerance
+        self.purity = purity
+        
+        self.__rules = []
+        self.__cutpoints = []
+        self.__labels = None
 
-		# Binarization
-		# Feature Selection
-		
-		return self # `fit` should always return `self`
+    def predict(self, X):
+        X = check_array(X, accept_sparse=True)
+        check_is_fitted(self, 'is_fitted_')
+        
+        # Auxiliary columns
+        for label in self.__labels:
+            X[label] = 0.0
 
-	def predict(self, X):
-		X = check_array(X, accept_sparse=True)
-		check_is_fitted(self, 'is_fitted_')
+        # Rules coverage
+        for r in rules[:]:
+            query = ' & '.join([f'{att}{condition}{val}' for att, condition, val in r['conditions']])
+            indexes = X.query(query).index
 
-		#return np.ones(X.shape[0], dtype=np.int64)
+            weight = r['weight']
+            label = r['label']
 
-	#
-	def calc_purity(class_, n_positive, n_negative):
-		if class_:
-			return float(n_positive) / (n_positive + n_negative)
-		else:
-			return float(n_negative) / (n_positive + n_negative)
+            X.loc[indexes, label] += weight
 
-	#
-	def calc_discrepancy(instance, df):
-		return (instance != df).values.sum()
+        # return np.ones(X.shape[0], dtype=np.int64)
+        return X[self.__labels].eq(X[self.__labels].max(1), axis=0).dot(X[self.__labels].columns)
 
-	#
-	def calc_coverage(instance, df):
-		return (instance == df)
+    def fit(self, X, y):        
+        # Template stuff
+        # -------------------------------
+        _, _ = check_X_y(X, y, accept_sparse=True)
+        self.is_fitted_ = True
+        # -------------------------------
+
+        print('# Binarization')
+        cpb = CutpointBinarizer(self.tolerance)
+        Xbin = cpb.fit_transform(X, y)
+
+        print('# Feature Selection')
+        gsc = GreedySetCover()
+        Xbin = gsc.fit_transform(Xbin, y)
+
+        print('# Rule building')
+        mxp = MaxPatterns(self.purity)
+        mxp.fit(Xbin, y)
+        
+        #
+        self.__labels = list(y.unique())
+        self.__cutpoints = cpb.get_cutpoints()
+        self.__rules = mxp.get_rules()
+        
+        print('# Convert binary rules into numeric rules')
+        self.__rules_to_numerical()
+
+        return self  # `fit` should always return `self`
+    
+    def __rules_to_numerical(self):
+        BIGGER_THAN = '>'
+        LESS_EQUAL_THAN = '<='
+
+        for r in self.__rules:        
+            r['conditions'] = []
+
+            for att, val in zip(r['attributes'], r['values']):
+                condition = LESS_EQUAL_THAN if val else BIGGER_THAN
+                att, val = cutpoints[att] # Convertion
+                r['conditions'].append((att, condition, val))
+
+'''
+# Load
+df = pd.read_csv('iris.data', names='att0 att1 att2 att3 class'.split())
+df = df.sample(frac=1, random_state=0) # Shuffle
+
+# Sampling
+sample_size = int(0.9*len(df))
+
+# Train
+X = df.iloc[:sample_size, :-1]
+y = df.iloc[:sample_size, -1]
+
+# Test
+X_test = df.iloc[sample_size + 1:, :-1]
+y_test = df.iloc[sample_size + 1:, -1]
+
+lad = LADClassifier()
+lad.fit(X, y)
+'''
