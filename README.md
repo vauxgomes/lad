@@ -24,5 +24,5 @@ $ sudo python setup.py install
 #### Or using pip
 
 ```sh
-pip install git+https://github.com/vauxgomes/lad-classifier.git#egg=lad-classifier
+$ python -m pip install git+https://github.com/vauxgomes/lad-classifier.git#egg=lad-classifier
 ```

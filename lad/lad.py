@@ -5,10 +5,13 @@ Template
 	https://github.com/scikit-learn-contrib
 '''
 
-import numpy
+import numpy as np
+import pandas as pd
+
 from sklearn.base import BaseEstimator
 from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 from sklearn.utils.multiclass import unique_labels
+from sklearn.metrics import classification_report
 
 from binarizer import CutpointBinarizer
 from featureselection import GreedySetCover
@@ -46,7 +49,7 @@ class LADClassifier(BaseEstimator):
         self.__labels = None
 
     def predict(self, X):
-        X = check_array(X, accept_sparse=True)
+        _ = check_array(X, accept_sparse=True)
         check_is_fitted(self, 'is_fitted_')
         
         # Auxiliary columns
@@ -54,7 +57,7 @@ class LADClassifier(BaseEstimator):
             X[label] = 0.0
 
         # Rules coverage
-        for r in rules[:]:
+        for r in self.__rules[:]:
             query = ' & '.join([f'{att}{condition}{val}' for att, condition, val in r['conditions']])
             indexes = X.query(query).index
 
@@ -104,25 +107,34 @@ class LADClassifier(BaseEstimator):
 
             for att, val in zip(r['attributes'], r['values']):
                 condition = LESS_EQUAL_THAN if val else BIGGER_THAN
-                att, val = cutpoints[att] # Convertion
+                att, val = self.__cutpoints[att] # Convertion
                 r['conditions'].append((att, condition, val))
 
-'''
-# Load
-df = pd.read_csv('iris.data', names='att0 att1 att2 att3 class'.split())
-df = df.sample(frac=1, random_state=0) # Shuffle
+if __name__ == '__main__':
+    # Load
+    df = pd.read_csv('data/iris.data', names='att0 att1 att2 att3 class'.split())
+    df = df.sample(frac=1, random_state=0) # Shuffle
 
-# Sampling
-sample_size = int(0.9*len(df))
+    # Sampling
+    sample_size = int(0.9*len(df))
 
-# Train
-X = df.iloc[:sample_size, :-1]
-y = df.iloc[:sample_size, -1]
+    # Train
+    X = df.iloc[:sample_size, :-1]
+    y = df.iloc[:sample_size, -1]
 
-# Test
-X_test = df.iloc[sample_size + 1:, :-1]
-y_test = df.iloc[sample_size + 1:, -1]
+    # Test
+    X_test = df.iloc[sample_size + 1:, :-1]
+    y_test = df.iloc[sample_size + 1:, -1]
 
-lad = LADClassifier()
-lad.fit(X, y)
-'''
+    # Classifier
+    lad = LADClassifier()
+    lad.fit(X, y)
+
+    # Prediction
+    y_hat = lad.predict(X_test)
+
+    # Report
+    print(classification_report(y_test, y_hat, target_names=list(y.unique())))
+
+
+
