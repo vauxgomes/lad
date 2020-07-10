@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="lad",
-    version="0.0.1",
+    version="0.1",
     author="Vaux Gomes",
     author_email="vauxgomes@gmail.com",
     description="Open source implementation of the Logical Analysis of Data Algorithm ",
