@@ -10,20 +10,20 @@ class NonWeightedSetCoveringProblem():
     def fit(self, Xbin, y):
         self.__scp.clear()
         
-        labels = y.unique()
+        labels = np.unique(y)
         
         for i in range(len(labels)):
             for j in range(i + 1, len(labels)):
                 
                 # Crossover
-                for u in Xbin[y == labels[i]].values:
-                    for v in Xbin[y == labels[j]].values:
+                for u in Xbin[y == labels[i]]:
+                    for v in Xbin[y == labels[j]]:
                         self.__scp.append(np.bitwise_xor(u, v))
                         
         self.__scp = np.array(self.__scp)
-        # self.__scp = np.delete(self.__scp, 9, axis=1) # quickfix
         
         return self.__scp
+
 
 class GreedySetCover():
     
@@ -33,6 +33,9 @@ class GreedySetCover():
         self.__selected = []
         self.__scp = None
         
+    def get_selected(self):
+        return self.__selected
+        
     def fit(self, Xbin, y):        
         self.__selected.clear()
         
@@ -41,13 +44,13 @@ class GreedySetCover():
                       
         while len(scp):
             sum_ = scp.sum(axis=0)
-            col = np.argmax(sum_)
+            att = np.argmax(sum_)
 
-            scp = np.delete(scp, np.where(scp[:, col]), axis=0)
-            self.__selected.append(col)
+            scp = np.delete(scp, np.where(scp[:, att]), axis=0)
+            self.__selected.append(att)
             
     def transform(self, Xbin):
-        return Xbin.iloc[:, self.__selected]
+        return Xbin[:, self.__selected]
     
     def fit_transform(self, Xbin, y):
         self.fit(Xbin, y)
