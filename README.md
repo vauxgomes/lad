@@ -26,3 +26,11 @@ $ sudo python setup.py install
 ```sh
 $ python -m pip install git+https://github.com/vauxgomes/lad-classifier.git#egg=lad-classifier
 ```
+
+## Versions and tags
+
+| Tag | Description | Version | Status |
+| -- | --  | -- | -- |
+| v0.1 | Uses pandas for processing the data and build decision rules. | MaxPatterns | Published |
+| v0.2 | Uses numpy instead of pandas. | MaxPatterns | Coding |
+| v0.3 | Fully validated code | MaxPatterns | -- |
