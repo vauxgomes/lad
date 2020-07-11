@@ -3,37 +3,38 @@ import pandas as pd
 
 
 class CutpointBinarizer():
-
+    
     def __init__(self, tolerance=0.0):
         self.__tolerance = tolerance
         self.__cutpoints = {}
         self.__size = 0
-
+        
     def get_cutpoints(self):
         return self.__cutpoints
 
     def fit(self, X, y):
         self.__cutpoints.clear()
 
-        for att in X.columns:
-
+        att = -1
+        for row in X.T:
+            att += 1
             labels = None  # Previuos labels
             u = -9999  # Previuos xi
 
             # Finding transitions
-            for v in sorted(X[att].unique()):
-                variation = v - u  # Current - Previous
+            for v in sorted(np.unique(row)):
+                variation = v - u # Current - Previous
 
-                # Class where v appears
-                indexes = X[X[att] == v].index
-                __labels = set(y[indexes].unique())
+                # Classes where v appears
+                indexes = np.where(row == v)[0]
+                __labels = set(y[indexes])
 
                 # Main condition
                 if labels is not None and variation > self.__tolerance:
 
                     # Testing for transition
                     if (len(labels) > 1 or len(__labels) > 1) or labels != __labels:
-                        cid = f'C{len(self.__cutpoints)}'
+                        cid = len(self.__cutpoints)
                         self.__cutpoints[cid] = (att, u + variation/2.0)
 
                 labels = __labels
@@ -42,13 +43,13 @@ class CutpointBinarizer():
         return self.__cutpoints
 
     def transform(self, X):
-        Xbin = pd.DataFrame()
+        Xbin = np.empty((X.shape[0], 0), bool)
 
-        for b, cutpoint in self.__cutpoints.items():
-            att, v = cutpoint
-
+        for att, cutpoint in self.__cutpoints.values():
             # Binarizing
-            Xbin[b] = X[att] <= v
+            row = X.T[att]
+            row = row.reshape(X.shape[0], 1) <= cutpoint
+            Xbin = np.hstack((Xbin, row))
 
         return Xbin
 
