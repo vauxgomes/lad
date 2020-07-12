@@ -32,5 +32,8 @@ $ python -m pip install git+https://github.com/vauxgomes/lad-classifier.git#egg=
 | Tag | Description | Version | Status |
 | -- | --  | -- | -- |
 | v0.1 | Uses pandas for processing the data and build decision rules. | MaxPatterns | Published |
-| v0.2 | Uses numpy instead of pandas. | MaxPatterns | Coding |
-| v0.3 | Fully validated code | MaxPatterns | -- |
+| v0.2 | Uses numpy instead of pandas. | MaxPatterns | Published |
+| v0.3 | Fully validated code | MaxPatterns | Coding |
+| v0.4 | The Random Rule Generator | MaxPatterns, RandomRules | -- |
+| v0.5 | Fully documented code | MaxPatterns, RandomRules | -- |
+| v0.6 | The LAD lazy mode | MaxPatterns, RandomRules | -- |
