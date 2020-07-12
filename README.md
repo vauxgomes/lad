@@ -20,9 +20,9 @@ LAD algorithm consists of dectecting hidden patterns capable of distinguishing o
 > A Java implementation of a binary LAD classifier can be found [here](https://lia.ufc.br/~tiberius/lad/downloads.htm).
 
 ### Related publications
-**An Implementation of Logical Analysis of Data**. Boros, E., P.L. Hammer, T. Ibaraki, A. Kogan, E. Mayoraz, I. Muchnik. IEEE Transactions on Knowledge and Data Engineering, vol 12(2), 292-306, 2000
+**An Implementation of Logical Analysis of Data**. Boros, E., P.L. Hammer, T. Ibaraki, A. Kogan, E. Mayoraz, I. Muchnik. IEEE Transactions on Knowledge and Data Engineering, vol 12(2), 292-306, 2000. (Link)[https://ieeexplore.ieee.org/abstract/document/842268?casa_token=y2NyWCbn7SsAAAAA:LCrKLdntpx-5GRNVdtU4F-Cnfs4VqsfWZTspa_yvgy_acfHvZjoZt_ZXKtHAOdiZGioUiNAN6m4FwQ]
 
-**Maximum Patterns in Datasets**. Bonates, T.O., P.L. Hammer, A. Kogan. Discrete Applied Mathematics, vol. 156(6), 846-861, 2008.
+**Maximum Patterns in Datasets**. Bonates, T.O., P.L. Hammer, A. Kogan. Discrete Applied Mathematics, vol. 156(6), 846-861, 2008. (Link)[https://www.sciencedirect.com/science/article/pii/S0166218X07002089]
 
 **Classificação Supervisionada de Dados via Otimização e Funções Booleanas**. Gomes, V.S.D., T. O. Bonates. Anais do II Workshop Técnico-Científico de Computação, p.21-27, Mossoró, RN, Brazil, 2011.
 
