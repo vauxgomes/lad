@@ -1,14 +1,14 @@
 #!/usr/bin/env python
-import pandas as pd
+import numpy as np
 
 
 class CutpointBinarizer():
-    
+
     def __init__(self, tolerance=0.0):
         self.__tolerance = tolerance
         self.__cutpoints = {}
         self.__size = 0
-        
+
     def get_cutpoints(self):
         return self.__cutpoints
 
@@ -23,7 +23,7 @@ class CutpointBinarizer():
 
             # Finding transitions
             for v in sorted(np.unique(row)):
-                variation = v - u # Current - Previous
+                variation = v - u  # Current - Previous
 
                 # Classes where v appears
                 indexes = np.where(row == v)[0]

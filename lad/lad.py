@@ -44,37 +44,53 @@ class LADClassifier(BaseEstimator):
         self.tolerance = tolerance
         self.purity = purity
         
-        self.__rules = []
-        self.__cutpoints = []
+        self.__rules = None
+        self.__cutpoints = None
+        self.__selected = None
         self.__labels = None
 
     def predict(self, X):
-        _ = check_array(X, accept_sparse=True)
+        X = check_array(X, accept_sparse=True)
         check_is_fitted(self, 'is_fitted_')
         
-        # Auxiliary columns
-        for label in self.__labels:
-            X[label] = 0.0
+        weights = {}
 
-        # Rules coverage
-        for r in self.__rules[:]:
-            query = ' & '.join([f'{att}{condition}{val}' for att, condition, val in r['conditions']])
-            indexes = X.query(query).index
+        for r in self.__rules:
 
-            weight = r['weight']
             label = r['label']
+            weight = r['weight']
 
-            X.loc[indexes, label] += weight
+            indexes = np.arange(X.shape[0])
 
-        # return np.ones(X.shape[0], dtype=np.int64)
-        return X[self.__labels].eq(X[self.__labels].max(1), axis=0).dot(X[self.__labels].columns)
+            for i, condition in enumerate(r['conditions']):
+                att = r['attributes'][i]
+                val = r['values'][i]
+
+                if (condition):
+                    #print(f'att{att} <= {val}', end=', ')
+                    indexes = indexes[np.where(X.T[att, indexes] <= val)]
+                else:
+                    #print(f'att{att} > {val}', end=', ')
+                    indexes = indexes[np.where(X.T[att, indexes] > val)]
+
+            #print(r['label'])
+
+            for i in indexes:
+                weights[i] = weights.get(i, {})
+                weights[i][label] = weights[i].get(label, 0) + weight
+
+        pred = []
+        for i in range(X.shape[0]):
+            if i not in weights:
+                pred.append(2)
+            else:
+                pred.append(max(weights[i], key=weights[i].get))
+                
+        return np.array(pred)
 
     def fit(self, X, y):        
-        # Template stuff
-        # -------------------------------
-        _, _ = check_X_y(X, y, accept_sparse=True)
+        X, y = check_X_y(X, y, accept_sparse=True)
         self.is_fitted_ = True
-        # -------------------------------
 
         #print('# Binarization')
         cpb = CutpointBinarizer(self.tolerance)
@@ -89,8 +105,9 @@ class LADClassifier(BaseEstimator):
         mxp.fit(Xbin, y)
         
         #
-        self.__labels = list(y.unique())
+        self.__labels = np.unique(y)
         self.__cutpoints = cpb.get_cutpoints()
+        self.__selected = gsc.get_selected()
         self.__rules = mxp.get_rules()
         
         #print('# Convert binary rules into numeric rules')
@@ -102,13 +119,15 @@ class LADClassifier(BaseEstimator):
         BIGGER_THAN = '>'
         LESS_EQUAL_THAN = '<='
 
-        for r in self.__rules:        
-            r['conditions'] = []
-
-            for att, val in zip(r['attributes'], r['values']):
-                condition = LESS_EQUAL_THAN if val else BIGGER_THAN
-                att, val = self.__cutpoints[att] # Convertion
-                r['conditions'].append((att, condition, val))
+        for r in self.__rules:
+            cutpoints = [self.__cutpoints[i] for i in self.__selected[r['attributes']]]
+            
+            r['attributes'].clear()
+            r['values'] = []
+            
+            for i, c in enumerate(cutpoints):
+                r['attributes'].append(c[0])
+                r['values'].append(c[1])
 
 '''
 if __name__ == '__main__':
@@ -117,11 +136,13 @@ if __name__ == '__main__':
     df = df.sample(frac=1, random_state=0) # Shuffle
 
     # Sampling
-    sample_size = int(0.5*len(df))
+    sample_size = int(0.9*len(df))
 
     # Train
     X = df.iloc[:sample_size, :-1]
     y = df.iloc[:sample_size, -1]
+
+    print(X.loc[[114,  62,  33, 107,   7, 100,  40]])
 
     # Test
     X_test = df.iloc[sample_size + 1:, :-1]
@@ -135,5 +156,5 @@ if __name__ == '__main__':
     y_hat = lad.predict(X_test)
 
     # Report
-    print(classification_report(y_test, y_hat, target_names=list(y.unique())))
+    print(classification_report(y_test, y_hat))
 '''

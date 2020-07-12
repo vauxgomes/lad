@@ -1,102 +1,90 @@
-import pandas as pd
+import numpy as np
+
 
 class MaxPatterns():
-    
-    def __init__(self, min_purity=0.95):
-        self.__rules  = []
-        self.__min_purity = min_purity
-        
+
+    def __init__(self, purity=0.95):
+        self.__min_purity = purity
+        self.__rules = []
+
     def get_rules(self):
         return self.__rules
-        
+
     def __purity(self, y):
-        ''' Returns the best purity and label for a given selection of instances '''
-        return max([(sum(y == label)/len(y), label) for label in y.unique()])
-    
-    def __query(self, instance, attributes=None):
-        ''' Builds pandas queries based on an instance and a set of attributes '''
-        if attributes is None:
-            attributes = instance.index
-            
-        return ' & '.join([f'`{att}`=={instance[att]}' for att in set(attributes)])
-    
+        unique, counts = np.unique(y, return_counts=True)
+        argmax = np.argmax(counts)
+
+        purity = counts[argmax]/len(y)
+        label = unique[argmax]
+
+        return len(y), counts[argmax], purity, label
+
     def fit(self, Xbin, y):
-        ''' Max Patterns Algorithm '''
-        self.__rules.clear()        
-        
+        self.__rules.clear()
+
         rules_weights = []
         labels_weights = {}
-        
-        for k, instance in Xbin.drop_duplicates().iterrows():
-            attributes = list(instance.index)
-            
-            query = self.__query(instance)
-            covered = Xbin.query(query)
-            #uncovered = Xbin.query(f'not({query})')
-            uncovered = Xbin.drop(covered.index, axis=0)
-            
-            purity, label = self.__purity(y[covered.index])
-            
-            # Number of duplicates
-            count = len(covered)
-            
+
+        for instance in np.unique(Xbin, axis=0):
+            attributes = list(range(len(instance)))
+
+            covered = np.where(
+                (Xbin[:, attributes] == instance[attributes]).all(axis=1))
+            count, _, purity, label = self.__purity(y[covered])
+
             # Choosing rule's attributes
-            while len(attributes) > 1 and len(uncovered) > 0:
-                
-                best_att = None
+            while len(attributes) > 1 and len(covered) <= Xbin.shape[0]:
+                best = None  # Actually, the worst
                 __attributes = attributes.copy()
-                
+
                 # Find the best attribute to be removed
                 for att in attributes:
                     # Candidate
                     __attributes.remove(att)
-                    
+
                     # Candidate's coverage
-                    __query = self.__query(instance, __attributes)
-                    __covered = pd.concat([covered, uncovered.query(__query)]) 
-                    #__uncovered = Xbin.query(f'not({__query})')
-                    uncovered = Xbin.drop(__covered.index, axis=0)
-                    
-                    #
-                    __purity, __label = self.__purity(y[__covered.index])
-                    
-                    # Choosing best purity of best coverage
-                    if __purity >= self.__min_purity and \
-                        (__purity > purity or \
-                             (__purity == purity and len(__covered) > len(covered))):
-                        best_att = att
-                    
+                    __covered = np.where(
+                        (Xbin[:, __attributes] == instance[__attributes]).all(axis=1))
+
+                    # Stats
+                    __count, _, __purity, _ = self.__purity(y[__covered])
+
+                    # Testing candidate
+                    if __purity >= self.__min_purity:
+                        if __purity > purity or (__purity == purity and __count > count):
+                            best = att
+
                     #
                     __attributes.append(att)
-                         
-                if best_att is None:
+
+                if best is None:
                     break
-                    
+
                 # Update rule
-                attributes.remove(best_att)
-                
-                query = self.__query(instance, attributes)
-                covered = Xbin.query(query)
-                uncovered = Xbin.drop(covered.index, axis=0)
-                
-                purity, label = self.__purity(y[covered.index])
-                
-                
-            rule = {
+                attributes.remove(best)
+
+                covered = np.where(
+                    (Xbin[:, attributes] == instance[attributes]).all(axis=1))
+                count, _, purity, label = self.__purity(y[covered])
+
+            # Forming rule object
+            r = {
                 'label': label,
                 'attributes': attributes.copy(),
-                'values': list(instance[attributes].values),
-                'purity': purity,
+                'conditions': list(instance[attributes]),
+                'purity': purity
             }
-            
-            if rule not in self.__rules:
-                self.__rules.append(rule)
+
+            # Storing rule
+            if r not in self.__rules:
+                self.__rules.append(r)
                 rules_weights.append(count)
             else:
-                rules_weights[self.__rules.index(rule)] += count
-                
+                # When the same rule as build more than once
+                rules_weights[self.__rules.index(r)] += count
+
             labels_weights[label] = labels_weights.get(label, 0) + count
-                
+
         # Reweighting
-        for i, rule in enumerate(self.__rules):
-            rule['weight'] = rules_weights[i]/labels_weights[rule['label']]        
+        for i, r in enumerate(self.__rules):
+            r['weight'] = rules_weights[i]/labels_weights[r['label']]
