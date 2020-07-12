@@ -29,7 +29,7 @@ $ python -m pip install git+https://github.com/vauxgomes/lad-classifier.git#egg=
 
 ## Versions and tags
 
-| Tag | Description | Version | Status |
+| Tag | Description | Algorithms | Status |
 | -- | --  | -- | -- |
 | v0.1 | Uses pandas for processing the data and build decision rules. | MaxPatterns | Published |
 | v0.2 | Uses numpy instead of pandas. | MaxPatterns | Published |
