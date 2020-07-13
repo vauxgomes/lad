@@ -135,7 +135,7 @@ class MaxPatterns():
             r['attributes'].clear()
             r['values'] = []
 
-            for i, c in enumerate(__cutpoints):
+            for c in __cutpoints:
                 r['attributes'].append(c[0])
                 r['values'].append(c[1])
 
