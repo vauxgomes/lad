@@ -27,7 +27,7 @@ LAD algorithm consists of dectecting hidden patterns capable of distinguishing o
  - **Classificação Supervisionada de Dados via Otimização e Funções Booleanas**. Gomes, V.S.D., T. O. Bonates. Anais do II Workshop Técnico-Científico de Computação, p.21-27, Mossoró, RN, Brazil, 2011.
 
 # Example
-As the code was implemented following sklean's classifiers format, its usage is quitte straightforward. See the code below.
+As the code was implemented following sklean's classifiers documentation, its usage is quite straightforward. See the code below.
 
 ```py
 from lad import LADClassifier
@@ -53,7 +53,6 @@ scores = cross_val_score(lad, X, y, cv=10, scoring="accuracy")
 | -- | --  | -- | -- |
 | v0.1 | Uses pandas for processing the data and build decision rules. | MaxPatterns | Published |
 | v0.2 | Uses numpy instead of pandas. | MaxPatterns | Published |
-| v0.3 | Fully validated code | MaxPatterns | Working |
-| v0.4 | The Random Rule Generator | MaxPatterns, RandomRules | -- |
-| v0.5 | Fully documented code | MaxPatterns, RandomRules | -- |
-| v0.6 | The LAD lazy mode | MaxPatterns, RandomRules | -- |
+| v0.3 | The LAD lazy mode | MaxPatterns, LazyMaxPatterns | Coding |
+| v0.4 | Fully validated code | MaxPatterns, LazyMaxPatterns | Working |
+| v0.5 | Fully documented code | MaxPatterns, LazyMaxPatterns | -- |
