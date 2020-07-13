@@ -11,7 +11,7 @@ setuptools.setup(
     description="Open source implementation of the Logical Analysis of Data Algorithm ",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/vauxgomes/python-logical-analysis-of-data",
+    url="https://github.com/vauxgomes/lad",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
