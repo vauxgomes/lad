@@ -53,6 +53,6 @@ scores = cross_val_score(lad, X, y, cv=10, scoring="accuracy")
 | -- | --  | -- | -- |
 | v0.1 | Uses pandas for processing the data and build decision rules. | MaxPatterns | Published |
 | v0.2 | Uses numpy instead of pandas. | MaxPatterns | Published |
-| v0.3 | The LAD lazy mode | MaxPatterns, LazyMaxPatterns | Coding |
-| v0.4 | Fully validated code | MaxPatterns, LazyMaxPatterns | Working |
+| v0.3 | The LAD lazy mode | MaxPatterns, LazyMaxPatterns | Published |
+| v0.4 | Fully validated code | MaxPatterns, LazyMaxPatterns | Testing |
 | v0.5 | Fully documented code | MaxPatterns, LazyMaxPatterns | -- |
