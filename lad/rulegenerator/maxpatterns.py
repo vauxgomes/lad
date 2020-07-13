@@ -171,7 +171,7 @@ class LazyMaxPatterns():
 
             covered = np.where(
                 (self.__Xbin[:, attributes] == instance[attributes]).all(axis=1))
-            repet, count, purity, label = self.__purity(self.__y[covered])
+            _, count, purity, label = self.__purity(self.__y[covered])
 
             # Choosing rule's attributes
             while len(attributes) > 1 and len(covered) <= self.__Xbin.shape[0]:
