@@ -77,4 +77,4 @@ Choose one of the following in order to install this classifier.
 | v0.2 | Uses numpy instead of pandas. | MaxPatterns | Published |
 | v0.3 | The LAD lazy mode | MaxPatterns, LazyMaxPatterns | Published |
 | v0.4 | Fully validated code | MaxPatterns, LazyMaxPatterns | Testing |
-| v0.5 | Fully documented code | MaxPatterns, LazyMaxPatterns | -- |
+| v1.0 | Fully documented code | MaxPatterns, LazyMaxPatterns | -- |
