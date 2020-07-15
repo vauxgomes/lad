@@ -5,6 +5,7 @@
    - [Description](#description)
    - [Related publications](#related-publications)
  - [Example](#example)
+ - [Installation](#installation)
  - [Versions and tags](#versions-and-tags)
 
 # Project
