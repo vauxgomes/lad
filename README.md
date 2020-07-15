@@ -30,7 +30,7 @@ LAD algorithm consists of dectecting hidden patterns capable of distinguishing o
 As the code was implemented following sklean's classifiers documentation, its usage is quite straightforward. See the code below.
 
 ```py
-from lad import LADClassifier
+from lad.lad import LADClassifier
 
 from sklearn import datasets
 from sklearn.model_selection import cross_val_score
@@ -46,6 +46,8 @@ scores = cross_val_score(lad, X, y, cv=10, scoring="accuracy")
 ```
 
 > The current version of lad doesn't implement a score function!
+
+Please refer to the [examples.py](examples.py) file
 
 # Versions and tags
 
