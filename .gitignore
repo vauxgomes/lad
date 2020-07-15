@@ -18,6 +18,3 @@ venv.bak/
 # Temp files
 tmp/
 .~*#
-
-# Unwanted folders
-data/
