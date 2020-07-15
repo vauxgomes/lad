@@ -47,7 +47,27 @@ scores = cross_val_score(lad, X, y, cv=10, scoring="accuracy")
 
 > The current version of lad doesn't implement a score function!
 
-Please refer to the [examples.py](examples.py) file
+Please, refer to the [examples.py](examples.py) file for another example.
+
+# Installation
+
+Choose one of the following in order to install this classifier.
+
+1. Clone this repository and use the setup file to install:
+
+    ```sh
+    $ git clone https://github.com/vauxgomes/lad.git
+    ```
+    ```sh
+    $ sudo python setup.py install
+    ```
+
+2. Install it with pip:
+
+    ```sh
+    $ python -m pip install git+https://github.com/vauxgomes/lad.git#egg=lad
+    ```
+
 
 # Versions and tags
 
