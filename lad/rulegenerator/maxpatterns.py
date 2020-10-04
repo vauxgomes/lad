@@ -10,15 +10,6 @@ class MaxPatterns():
     def get_rules(self):
         return self.__rules
 
-    def __purity(self, y):
-        unique, counts = np.unique(y, return_counts=True)
-        argmax = np.argmax(counts)
-
-        purity = counts[argmax]/len(y)
-        label = unique[argmax]
-
-        return len(y), counts[argmax], purity, label
-
     def predict(self, X):
         weights = {}
 
@@ -64,12 +55,10 @@ class MaxPatterns():
         for instance in np.unique(Xbin, axis=0):
             attributes = list(np.arange(instance.shape[0]))
 
-            covered = np.where(
-                (Xbin[:, attributes] == instance[attributes]).all(axis=1))
-            repet, count, purity, label = self.__purity(y[covered])
+            repet, count, purity, label, discrepancy = self.__get_stats(Xbin, y, instance, attributes)
 
             # Choosing rule's attributes
-            while len(attributes) > 1 and len(covered) <= Xbin.shape[0]:
+            while len(attributes) > 1:
                 best = None  # Actually, the worst
                 __attributes = attributes.copy()
 
@@ -78,16 +67,12 @@ class MaxPatterns():
                     # Candidate
                     __attributes.remove(att)
 
-                    # Candidate's coverage
-                    __covered = np.where(
-                        (Xbin[:, __attributes] == instance[__attributes]).all(axis=1))
-
                     # Stats
-                    _, __count, __purity, _ = self.__purity(y[__covered])
+                    _, __count, __purity, _, __discrepancy = self.__get_stats(Xbin, y, instance, __attributes)
 
                     # Testing candidate
                     if __purity >= self.__min_purity:
-                        if __purity > purity or (__purity == purity and __count > count):
+                        if __purity > purity or (__purity == purity and __discrepancy < discrepancy):
                             best = att
 
                     #
@@ -99,9 +84,8 @@ class MaxPatterns():
                 # Update rule
                 attributes.remove(best)
 
-                covered = np.where(
-                    (Xbin[:, attributes] == instance[attributes]).all(axis=1))
-                _, count, purity, label = self.__purity(y[covered])
+                # Turn's stats
+                _, count, purity, label, _ = self.__get_stats(Xbin, y, instance, attributes)
 
             # Forming rule object
             r = {
@@ -138,6 +122,33 @@ class MaxPatterns():
             for c in __cutpoints:
                 r['attributes'].append(c[0])
                 r['values'].append(c[1])
+                
+    def __get_stats(self, Xbin, y, instance, attributes):
+        covered = np.where((Xbin[:, attributes] == instance[attributes]).all(axis=1))
+        uncovered = np.setdiff1d(np.arange(Xbin.shape[0]), covered[0])
+
+        unique, counts = np.unique(y[covered], return_counts=True)
+        argmax = np.argmax(counts)
+        purity = counts[argmax]/len(covered[0])
+        label = unique[argmax]
+
+        uncovered_class =  uncovered[y[uncovered] == label]
+        uncovered_other = uncovered[y[uncovered] != label]
+
+        distance_class = np.sum(np.bitwise_xor(  
+            Xbin[uncovered_class][:, attributes],
+            instance[attributes]
+        ))
+
+        distance_other = np.sum(np.bitwise_xor(  
+            Xbin[uncovered_other][:, attributes],
+            instance[attributes]
+        ))
+
+        discrepancy = (max(1.0, distance_class)/max(1.0, len(uncovered_class)) /
+                       max(1.0, distance_other)/max(1.0, len(uncovered_other)))
+
+        return len(covered), counts[argmax], purity, label, discrepancy
 
 
 class LazyMaxPatterns():
