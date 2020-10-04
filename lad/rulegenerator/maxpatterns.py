@@ -75,6 +75,8 @@ class MaxPatterns():
                     if __purity >= self.__min_purity:
                         if __purity > purity or (__purity == purity and __discrepancy < discrepancy):
                             best = att
+                            purity = __purity
+                            discrepancy = __discrepancy
 
                     #
                     __attributes.append(att)
@@ -162,69 +164,55 @@ class LazyMaxPatterns():
         self.__binarizer = None
         self.__selector = None
 
-    def __purity(self, y):
-        if len(y) == 0:
-            return 0, 0, 0, None
-
-        unique, counts = np.unique(y, return_counts=True)
-        argmax = np.argmax(counts)
-
-        purity = counts[argmax]/len(y)
-        label = unique[argmax]
-
-        return len(y), counts[argmax], purity, label
-
     def predict(self, X):
         Xbin = self.__selector.transform(self.__binarizer.transform(X))
         predictions = []
 
         for instance in Xbin:
-            attributes = list(np.arange(instance.shape[0]))
+            attributes = []
+            literals = list(np.arange(instance.shape[0]))
 
-            covered = np.where(
-                (self.__Xbin[:, attributes] == instance[attributes]).all(axis=1))
-            _, count, purity, label = self.__purity(self.__y[covered])
-
+            # Stats
+            _, count, purity, label, discrepancy = self.__get_stats(self.__Xbin, self.__y, instance, attributes)
+            
             # Choosing rule's attributes
-            while len(attributes) > 1 and len(covered) <= self.__Xbin.shape[0]:
-                best = None  # Actually, the worst
+            while len(literals) > 0:
+                best = None
                 __attributes = attributes.copy()
 
                 # Find the best attribute to be removed
-                for att in attributes:
+                for att in literals:
                     # Candidate
-                    __attributes.remove(att)
-
-                    # Candidate's coverage
-                    __covered = np.where(
-                        (self.__Xbin[:, __attributes] == instance[__attributes]).all(axis=1))
+                    __attributes.append(att)
 
                     # Stats
-                    _, __count, __purity, _ = self.__purity(
-                        self.__y[__covered])
+                    _, _, __purity, _, __discrepancy = self.__get_stats(self.__Xbin, self.__y, instance, __attributes)
 
                     # Testing candidate
-                    if __purity >= self.__min_purity or purity == 0:
-                        if __purity > purity or (__purity == purity and __count > count):
-                            best = att
+                    if __purity > purity or (__purity == purity and __discrepancy < discrepancy):
+                        best = att
+                        purity = __purity
+                        discrepancy = __discrepancy
 
                     #
-                    __attributes.append(att)
+                    __attributes.remove(att)
 
                 if best is None:
                     break
 
                 # Update rule
-                attributes.remove(best)
+                literals.remove(best)
+                attributes.append(best)
 
-                covered = np.where(
-                    (self.__Xbin[:, attributes] == instance[attributes]).all(axis=1))
-                count, _, purity, label = self.__purity(self.__y[covered])
+                # Stats
+                _, count, purity, label, discrepancy = self.__get_stats(self.__Xbin, self.__y, instance, attributes)
 
             # Get most frequent if no rule was formed
             if purity == 0:
-                _, _, _, label = self.__purity(self.__y)
+                _, _, _, label, _ = self.__get_stats(self.__Xbin, self.__y, instance, [])
 
+            self.__tmp += 1
+            
             predictions.append(label)
 
         return np.array(predictions)
@@ -232,8 +220,43 @@ class LazyMaxPatterns():
     def fit(self, Xbin, y):
         self.__Xbin = Xbin
         self.__y = y
+        self.__tmp = 0
         # self.__labels = np.unique(y)
 
     def adjust(self, binarizer, selector):
         self.__binarizer = binarizer
         self.__selector = selector
+        
+    def __get_stats(self, Xbin, y, instance, attributes):
+        covered = np.where((Xbin[:, attributes] == instance[attributes]).all(axis=1))
+        uncovered = np.setdiff1d(np.arange(Xbin.shape[0]), covered[0])
+
+        if len(covered[0]) == 0:
+            counts = 0
+            purity = 0
+            label = None
+        else:
+            unique, counts = np.unique(y[covered], return_counts=True)
+            argmax = np.argmax(counts)
+            purity = counts[argmax]/len(covered[0])
+            label = unique[argmax]
+            
+            counts = counts[argmax]
+
+        uncovered_class =  uncovered[y[uncovered] == label]
+        uncovered_other = uncovered[y[uncovered] != label]
+
+        distance_class = np.sum(np.bitwise_xor(  
+            Xbin[uncovered_class][:, attributes],
+            instance[attributes]
+        ))
+
+        distance_other = np.sum(np.bitwise_xor(  
+            Xbin[uncovered_other][:, attributes],
+            instance[attributes]
+        ))
+
+        discrepancy = (max(1.0, distance_class)/max(1.0, len(uncovered_class)) /
+                       max(1.0, distance_other)/max(1.0, len(uncovered_other)))
+
+        return len(covered), counts, purity, label, discrepancy
