@@ -12,7 +12,8 @@ from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 
 from lad.binarizer.cutpointbinarizer import CutpointBinarizer
 from lad.featureselection.featureselection import GreedySetCover
-from lad.rulegenerator.maxpatterns import MaxPatterns, LazyMaxPatterns
+from lad.rulegenerator.eager import MaxPatterns
+from lad.rulegenerator.lazy import LazyPatterns
 
 # Docs
 __author__ = 'Vaux Gomes'
@@ -72,7 +73,7 @@ class LADClassifier(BaseEstimator, ClassifierMixin):
             self.model = MaxPatterns(self.purity)
 
         elif self.mode == 'lazy':
-            self.model = LazyMaxPatterns(self.purity)
+            self.model = LazyPatterns(self.purity)
         
         self.model.fit(Xbin, y)
         self.model.adjust(cpb, gsc)
