@@ -55,7 +55,8 @@ class MaxPatterns():
         for instance in np.unique(Xbin, axis=0):
             attributes = list(np.arange(instance.shape[0]))
 
-            repet, count, purity, label, discrepancy = self.__get_stats(Xbin, y, instance, attributes)
+            # Stats
+            repet, _, purity, label, discrepancy = self.__get_stats(Xbin, y, instance, attributes)
 
             # Choosing rule's attributes
             while len(attributes) > 1:
@@ -68,7 +69,7 @@ class MaxPatterns():
                     __attributes.remove(att)
 
                     # Stats
-                    _, __count, __purity, _, __discrepancy = self.__get_stats(Xbin, y, instance, __attributes)
+                    _, _, __purity, _, __discrepancy = self.__get_stats(Xbin, y, instance, __attributes)
 
                     # Testing candidate
                     if __purity >= self.__min_purity:
@@ -85,7 +86,7 @@ class MaxPatterns():
                 attributes.remove(best)
 
                 # Turn's stats
-                _, count, purity, label, _ = self.__get_stats(Xbin, y, instance, attributes)
+                _, count, purity, label, discrepancy = self.__get_stats(Xbin, y, instance, attributes)
 
             # Forming rule object
             r = {
