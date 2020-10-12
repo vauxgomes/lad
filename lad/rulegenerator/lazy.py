@@ -20,8 +20,7 @@ class LazyPatterns():
             literals = list(np.arange(instance.shape[0]))
 
             # Stats
-            _, count, purity, label, discrepancy = self.__get_stats(
-                self.__Xbin, self.__y, instance, attributes)
+            _, count, purity, label, discrepancy = self.__get_stats(instance, attributes)
 
             # Choosing rule's attributes
             while len(literals) > 0:
@@ -34,8 +33,7 @@ class LazyPatterns():
                     __attributes.append(att)
 
                     # Stats
-                    _, _, __purity, _, __discrepancy = self.__get_stats(
-                        self.__Xbin, self.__y, instance, __attributes)
+                    _, _, __purity, _, __discrepancy = self.__get_stats(instance, __attributes)
 
                     # Testing candidate
                     if __purity > purity or (__purity == purity and __discrepancy < discrepancy):
@@ -54,13 +52,11 @@ class LazyPatterns():
                 attributes.append(best)
 
                 # Stats
-                _, count, purity, label, discrepancy = self.__get_stats(
-                    self.__Xbin, self.__y, instance, attributes)
+                _, count, purity, label, discrepancy = self.__get_stats(instance, attributes)
 
             # Get most frequent if no rule was formed
             if purity == 0:
-                _, _, _, label, _ = self.__get_stats(
-                    self.__Xbin, self.__y, instance, [])
+                _, _, _, label, _ = self.__get_stats(instance, [])
 
             self.__tmp += 1
 
@@ -78,33 +74,33 @@ class LazyPatterns():
         self.__binarizer = binarizer
         self.__selector = selector
 
-    def __get_stats(self, Xbin, y, instance, attributes):
+    def __get_stats(self, instance, attributes):
         covered = np.where(
-            (Xbin[:, attributes] == instance[attributes]).all(axis=1))
-        uncovered = np.setdiff1d(np.arange(Xbin.shape[0]), covered[0])
+            (self.__Xbin[:, attributes] == instance[attributes]).all(axis=1))
+        uncovered = np.setdiff1d(np.arange(self.__Xbin.shape[0]), covered[0])
 
         if len(covered[0]) == 0:
             counts = 0
             purity = 0
             label = None
         else:
-            unique, counts = np.unique(y[covered], return_counts=True)
+            unique, counts = np.unique(self.__y[covered], return_counts=True)
             argmax = np.argmax(counts)
             purity = counts[argmax]/len(covered[0])
             label = unique[argmax]
 
             counts = counts[argmax]
 
-        uncovered_class = uncovered[y[uncovered] == label]
-        uncovered_other = uncovered[y[uncovered] != label]
+        uncovered_class = uncovered[self.__y[uncovered] == label]
+        uncovered_other = uncovered[self.__y[uncovered] != label]
 
         distance_class = np.sum(np.bitwise_xor(
-            Xbin[uncovered_class][:, attributes],
+            self.__Xbin[uncovered_class][:, attributes],
             instance[attributes]
         ))
 
         distance_other = np.sum(np.bitwise_xor(
-            Xbin[uncovered_other][:, attributes],
+            self.__Xbin[uncovered_other][:, attributes],
             instance[attributes]
         ))
 
