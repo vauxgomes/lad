@@ -79,3 +79,5 @@ Choose one of the following in order to install this classifier.
 | v0.3 | The LAD lazy mode | MaxPatterns, LazyMaxPatterns | Published |
 | v0.4 | Fully validated code | MaxPatterns, LazyMaxPatterns | Testing |
 | v1.0 | Fully documented code | MaxPatterns, LazyMaxPatterns | -- |
+
+> Please refer to the release branch for the latest updates
