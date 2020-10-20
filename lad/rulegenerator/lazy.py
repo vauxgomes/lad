@@ -22,7 +22,7 @@ class LazyPatterns():
                 attributes = list(np.arange(instance.shape[0]))
 
                 # Stats
-                _, confidence, support = self.__get_stats(
+                label, confidence, support, lift = self.__get_stats(
                     instance, attributes, l)
 
                 # Choosing rule's attributes
@@ -36,14 +36,17 @@ class LazyPatterns():
                         __attributes.remove(att)
 
                         # Stats
-                        _, __confidence, __support = self.__get_stats(
+                        _, __confidence, __support, __lift = self.__get_stats(
                             instance, __attributes, l)
 
                         # Testing candidate
-                        if __confidence > confidence or (__confidence == confidence and __support > support):
+                        if __confidence > confidence \
+                            or (__confidence == confidence and __support > support) \
+                            or (__confidence == confidence and __support == support and __lift > lift):
                             best = att
                             confidence = __confidence
                             support = __support
+                            lift = __lift
 
                         #
                         __attributes.append(att)
@@ -55,14 +58,14 @@ class LazyPatterns():
                     attributes.remove(best)
 
                     # Stats
-                    label, confidence, support = self.__get_stats(
+                    label, confidence, support, lift = self.__get_stats(
                         instance, attributes, l)
 
                 # Saving score
-                scores.append((label, confidence, support))
+                scores.append((label, confidence, support, lift))
 
             # Best score
-            label = sorted(scores, key=lambda x: (x[1], x[2]))[-1][0]
+            label = sorted(scores, key=lambda x: (x[1], x[2], x[3]))[-1][0]
             predictions.append(label)
 
         return np.array(predictions)
@@ -70,7 +73,9 @@ class LazyPatterns():
     def fit(self, Xbin, y):
         self.__Xbin = Xbin
         self.__y = y
-        self.__labels = np.unique(y)
+
+        unique, counts = np.unique(y, return_counts=True) 
+        self.__labels = {unique[i]: counts[i] for i in range(len(unique))}
 
     def adjust(self, binarizer, selector):
         self.__binarizer = binarizer
@@ -82,6 +87,7 @@ class LazyPatterns():
 
         confidence = 0
         support = 0
+        lift = 2
 
         if len(covered[0]) > 0:
             unique, counts = np.unique(self.__y[covered], return_counts=True)
@@ -93,5 +99,6 @@ class LazyPatterns():
             if label in unique:
                 confidence = counts[argmax]/sum(counts)
                 support = counts[argmax]/self.__Xbin.shape[0]
+                lift = (counts[argmax]/len(covered[0]))/(self.__labels[unique[argmax]]/self.__y.shape[0])
 
-        return label, confidence, support
+        return label, confidence, support, lift
