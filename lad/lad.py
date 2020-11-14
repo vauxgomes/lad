@@ -10,9 +10,10 @@ https://sklearn-template.readthedocs.io/en/latest/quick_start.html
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 
-from lad.binarizer.cutpointbinarizer import CutpointBinarizer
-from lad.featureselection.featureselection import GreedySetCover
-from lad.rulegenerator.maxpatterns import MaxPatterns, LazyMaxPatterns
+from lad.binarizer.cutpoint import CutpointBinarizer
+from lad.featureselection.greedy import GreedySetCover
+from lad.rulegenerator.eager import MaxPatterns
+from lad.rulegenerator.lazy import LazyPatterns
 
 # Docs
 __author__ = 'Vaux Gomes'
@@ -69,13 +70,12 @@ class LADClassifier(BaseEstimator, ClassifierMixin):
 
         # print('# Rule building')
         if self.mode == 'eager':
-            self.model = MaxPatterns(self.purity)
+            self.model = MaxPatterns(cpb, gsc, self.purity)
 
         elif self.mode == 'lazy':
-            self.model = LazyMaxPatterns(self.purity)
+            self.model = LazyPatterns(cpb, gsc)
         
         self.model.fit(Xbin, y)
-        self.model.adjust(cpb, gsc)
 
         return self  # `fit` should always return `self`
 
@@ -84,3 +84,9 @@ class LADClassifier(BaseEstimator, ClassifierMixin):
         check_is_fitted(self, 'is_fitted_')
 
         return self.model.predict(X)
+
+    def predict_proba(self, X):
+        X = check_array(X, accept_sparse=True)
+        check_is_fitted(self, 'is_fitted_')
+
+        return self.model.predict_proba(X)
