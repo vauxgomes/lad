@@ -1,15 +1,12 @@
 import numpy as np
 
-
 class LazyPatterns():
 
-    def __init__(self, purity=0.95):
-        self.__min_purity = purity
-
+    def __init__(self, binarizer, selector):
         self.__Xbin = None
         self.__y = None
-        self.__binarizer = None
-        self.__selector = None
+        self.__binarizer = binarizer
+        self.__selector = selector
 
     def predict(self, X):
         Xbin = self.__selector.transform(self.__binarizer.transform(X))
@@ -70,16 +67,21 @@ class LazyPatterns():
 
         return np.array(predictions)
 
+    def predict_proba(self, X):
+        predictions = self.predict(X)
+        output = np.zeros((len(X), len(np.unique(self.__y))))
+
+        for i in range(len(X)):
+            output[i][predictions[i]] = 1
+
+        return output
+
     def fit(self, Xbin, y):
         self.__Xbin = Xbin
         self.__y = y
 
         unique, counts = np.unique(y, return_counts=True) 
         self.__labels = {unique[i]: counts[i] for i in range(len(unique))}
-
-    def adjust(self, binarizer, selector):
-        self.__binarizer = binarizer
-        self.__selector = selector
 
     def __get_stats(self, instance, attributes, label):
         covered = np.where(

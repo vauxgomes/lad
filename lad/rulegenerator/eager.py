@@ -3,9 +3,12 @@ import numpy as np
 
 class MaxPatterns():
 
-    def __init__(self, purity=0.95):
+    def __init__(self, binarizer, selector, purity):
         self.__min_purity = purity
         self.__rules = []
+        
+        self.__cutpoints = binarizer.get_cutpoints()
+        self.__selected = selector.get_selected()
 
     def get_rules(self):
         return self.__rules
@@ -46,8 +49,18 @@ class MaxPatterns():
 
         return np.array(predictions)
 
+    def predict_proba(self, X):
+        predictions = self.predict(X)
+        output = np.zeros((len(X), self.__nunique_y))
+
+        for i in range(len(X)):
+            output[i][predictions[i]] = 1
+
+        return output
+
     def fit(self, Xbin, y):
         self.__rules.clear()
+        self.__nunique_y = len(np.unique(y))
 
         rules_weights = []
         labels_weights = {}
@@ -115,12 +128,11 @@ class MaxPatterns():
         for i, r in enumerate(self.__rules):
             r['weight'] = rules_weights[i]/labels_weights[r['label']]
 
-    def adjust(self, binarizer, selector):
-        cutpoints = binarizer.get_cutpoints()
-        selected = selector.get_selected()
+        self.__adjust()        
 
+    def __adjust(self):
         for r in self.__rules:
-            __cutpoints = [cutpoints[i] for i in selected[r['attributes']]]
+            __cutpoints = [self.__cutpoints[i] for i in self.__selected[r['attributes']]]
 
             r['attributes'].clear()
             r['values'] = []
