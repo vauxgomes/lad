@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class NonWeightedSetCoveringProblem():
+class UnWeightedSetCoveringProblem():
 
     ''' Set covering problem builder '''
 
@@ -39,8 +39,8 @@ class GreedySetCover():
     def fit(self, Xbin, y):        
         self.__selected.clear()
         
-        nwscp = NonWeightedSetCoveringProblem()
-        scp = nwscp.fit(Xbin, y)
+        builder = UnWeightedSetCoveringProblem()
+        scp = builder.fit(Xbin, y)
         
         # print('SCP', scp.shape)
                       
