@@ -43,7 +43,7 @@ class MaxPatterns():
         predictions = []
         for i in range(X.shape[0]):
             if i not in weights:
-                predictions.append(2)
+                predictions.append(self.__most_frequent_label)
             else:
                 predictions.append(max(weights[i], key=weights[i].get))
 
@@ -51,7 +51,7 @@ class MaxPatterns():
 
     def predict_proba(self, X):
         predictions = self.predict(X)
-        output = np.zeros((len(X), self.__nunique_y))
+        output = np.zeros((len(X), self.__labels))
 
         for i in range(len(X)):
             output[i][predictions[i]] = 1
@@ -59,9 +59,15 @@ class MaxPatterns():
         return output
 
     def fit(self, Xbin, y):
-        self.__rules.clear()
-        self.__nunique_y = len(np.unique(y))
+        #
+        unique, counts = np.unique(y, return_counts=True) 
 
+        #   
+        self.__rules.clear()
+        self.__labels = len(np.unique(y))
+        self.__most_frequent_label = unique[np.argmax(counts)]        
+
+        #
         rules_weights = []
         labels_weights = {}
 
