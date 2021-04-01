@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class MaxPatterns():
 
     def __init__(self, binarizer, selector, purity):
@@ -9,9 +8,6 @@ class MaxPatterns():
         
         self.__cutpoints = binarizer.get_cutpoints()
         self.__selected = selector.get_selected()
-
-    def get_rules(self):
-        return self.__rules
 
     def predict(self, X):
         weights = {}
@@ -146,6 +142,8 @@ class MaxPatterns():
             for c in __cutpoints:
                 r['attributes'].append(c[0])
                 r['values'].append(c[1])
+        
+        self.__rules.sort(key=lambda x: x['label'])
 
     def __get_stats(self, Xbin, y, instance, attributes):
         covered = np.where(
@@ -174,3 +172,26 @@ class MaxPatterns():
                        max(1.0, distance_other)/max(1.0, len(uncovered_other)))
 
         return len(covered), counts[argmax], purity, label, discrepancy
+
+    def __str__(self):
+        s = f'MaxPatterns Set of Rules [{len(self.__rules)}]:\n'
+        
+        for r in self.__rules:
+            label = r['label']
+            # weight = r['weight']
+            conditions = []
+
+            for i, condition in enumerate(r['conditions']):
+                att = r['attributes'][i]
+                val = r['values'][i]
+
+                if (condition):
+                    conditions.append(f'att{att} <= {val:.4}')
+                else:
+                    conditions.append(f'att{att} > {val:.4}')
+
+            # Label -> CONDITION_1 AND CONDITION_2 AND CONDITION_n
+            s += f'{label} \u2192 {" AND ".join(conditions)}\n'
+
+        return s
+

@@ -74,7 +74,7 @@ class LADClassifier(BaseEstimator, ClassifierMixin):
 
         elif self.mode == 'lazy':
             self.model = LazyPatterns(cpb, gsc)
-        
+
         self.model.fit(Xbin, y)
 
         return self  # `fit` should always return `self`
@@ -90,3 +90,6 @@ class LADClassifier(BaseEstimator, ClassifierMixin):
         check_is_fitted(self, 'is_fitted_')
 
         return self.model.predict_proba(X)
+
+    def __str__(self):
+        return self.model.__str__()

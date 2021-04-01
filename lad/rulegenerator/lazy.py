@@ -104,3 +104,6 @@ class LazyPatterns():
                 lift = (counts[argmax]/len(covered[0]))/(self.__labels[unique[argmax]]/self.__y.shape[0])
 
         return label, confidence, support, lift
+
+    def __str__(self):
+        print(f'LazyPatterns Set of Rules [None]:')
