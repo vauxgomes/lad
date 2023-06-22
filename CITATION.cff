@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Gomes
+    given-names: Vaux Sandino Diniz
+    orcid: https://orcid.org/0000-0001-7672-0643
+title: "Logical Analysis of Data a Python Implementation"
+version: 1.0.0
+date-released: 2022-10-12

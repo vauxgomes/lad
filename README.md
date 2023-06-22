@@ -7,6 +7,8 @@
  - [Example](#example)
  - [Installation](#installation)
  - [Versions and tags](#versions-and-tags)
+ - [Citation](#citation)
+
 
 # Project
 
@@ -81,3 +83,18 @@ Choose one of the following in order to install this classifier.
 | v1.0 | Fully documented code | MaxPatterns, LazyMaxPatterns | -- |
 
 > Please refer to the release branch for the latest updates
+
+
+# Citation
+
+In case you want to cite this project:
+
+```bibtex
+@software{V.S.D. Gomes,
+    author = {Gomes, Vaux Sandino Diniz},
+    month = {4},
+    title = {{Logical Analysis of Data a Python Implementation}},
+    version = {1.0.0},
+    year = {2022}
+}
+```
