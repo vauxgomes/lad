@@ -5,6 +5,8 @@ class LazyPatterns():
     def __init__(self, binarizer, selector):
         self.__Xbin = None
         self.__y = None
+        self.__rules = []
+
         self.__binarizer = binarizer
         self.__selector = selector
 
@@ -65,8 +67,50 @@ class LazyPatterns():
             label = sorted(scores, key=lambda x: (x[1], x[2], x[3]))[-1][0]
             predictions.append(label)
 
+            # Forming rule object
+            r = {
+                'label': label,
+                'attributes': attributes.copy(),
+                'conditions': list(instance[attributes]),
+                'confidence': confidence,
+                'support': support,
+                'lift': lift
+            }
+
+            # Storing rule
+            if r not in self.__rules:
+                self.__rules.append(r)
+
+        self.__adjust()        
+        
         return np.array(predictions)
 
+    def __adjust(self):
+        for r in self.__rules:
+            conditions = {}
+            cutpoints = [self.__binarizer.get_cutpoints()[i] for i in self.__selector.get_selected()[r['attributes']]]
+
+            for i, (att, value) in enumerate(cutpoints):
+                condition = conditions.get(att, {})
+                symbol = r['conditions'][i]  # True: <=, False: >
+
+                if symbol: condition[symbol] = min(value, condition.get(symbol, value))
+                else: condition[symbol] = max(value, condition.get(symbol, value))
+
+                conditions[att] = condition
+
+            r['attributes'].clear()
+            r['conditions'].clear()
+            r['values'] = []
+            
+            for att in conditions:
+                for condition in conditions[att]:
+                    r['attributes'].append(att)
+                    r['conditions'].append(condition == '<=')
+                    r['values'].append(conditions[att][condition])
+
+        self.__rules.sort(key=lambda x: x['label'])
+    
     def predict_proba(self, X):
         predictions = self.predict(X)
         output = np.zeros((len(X), len(np.unique(self.__y))))
@@ -106,4 +150,23 @@ class LazyPatterns():
         return label, confidence, support, lift
 
     def __str__(self):
-        print(f'LazyPatterns Set of Rules [None]:')
+        s = f'LazyPatterns Set of Rules:\n'
+        
+        for r in self.__rules:
+            label = r['label']
+            # weight = r['weight']
+            conditions = []
+
+            for i, condition in enumerate(r['conditions']):
+                att = r['attributes'][i]
+                val = r['values'][i]
+
+                if (condition):
+                    conditions.append(f'att{att} <= {val:.4}')
+                else:
+                    conditions.append(f'att{att} > {val:.4}')
+
+            # Label -> CONDITION_1 AND CONDITION_2 AND CONDITION_n
+            s += f'{label} \u2192 {" AND ".join(conditions)}\n'
+
+        return s
